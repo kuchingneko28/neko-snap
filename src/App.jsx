@@ -18,6 +18,34 @@ export default function App() {
     setCompositeUrl(null);
   };
 
+  const captureFrame = (video, time) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+
+      const onSeeked = () => {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        video.removeEventListener("seeked", onSeeked);
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.src = canvas.toDataURL("image/png");
+      };
+
+      video.addEventListener("seeked", onSeeked);
+      video.currentTime = time;
+    });
+  };
+
+  const formatTime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
+  };
+
   const handleProcess = async () => {
     if (!file) return alert("Please select a video file first.");
     setLoading(true);
@@ -45,17 +73,22 @@ export default function App() {
         thumbs.push({ time, image: thumb });
       }
 
-      const thumbHeight = (height / width) * thumbWidth;
-      const textLines = 4;
       const padding = 4;
-      const lineSpacing = 8;
-      const marginTop = 8;
-      const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.04)));
-      // const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
+      const thumbHeight = (height / width) * thumbWidth;
 
-      const headerHeight = marginTop + baseFontSize * textLines + lineSpacing * (textLines - 1);
       const canvas = document.createElement("canvas");
       canvas.width = cols * (thumbWidth + padding) - padding;
+
+      const fontScale = canvas.width / 1200;
+      const baseFontSize = Math.min(48, Math.max(14, Math.floor(20 * fontScale)));
+      const marginTop = 12;
+      const marginLeft = 12;
+      const marginBotto = 16;
+      const lineSpacing = 4;
+      const textLines = 4;
+      const labelBlockHeight = baseFontSize + lineSpacing;
+      const headerHeight = marginTop + textLines * labelBlockHeight + marginBotto;
+
       canvas.height = rows * (thumbHeight + padding) - padding + headerHeight;
 
       const ctx = canvas.getContext("2d");
@@ -66,10 +99,12 @@ export default function App() {
       ctx.fillStyle = isDarkBg ? "white" : "black";
       ctx.font = `${baseFontSize}px monospace`;
 
-      ctx.fillText(`Filename: ${file.name}`, 10, Math.round(marginTop + baseFontSize * 1));
-      ctx.fillText(`File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, 10, Math.round(marginTop + baseFontSize * 2));
-      ctx.fillText(`Duration: ${formatTime(duration)}`, 10, Math.round(marginTop + baseFontSize * 3));
-      ctx.fillText(`Dimensions: ${width}x${height}`, 10, Math.round(marginTop + baseFontSize * 4));
+      for (let i = 0; i < textLines; i++) {
+        const y = marginTop + i * labelBlockHeight + baseFontSize;
+        const label = [`Filename: ${file.name}`, `File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${width}x${height}`][i];
+
+        ctx.fillText(label, marginLeft, y);
+      }
 
       thumbs.forEach((thumb, idx) => {
         const col = idx % cols;
@@ -96,29 +131,6 @@ export default function App() {
       setCompositeUrl(canvas.toDataURL("image/png"));
       setLoading(false);
     };
-  };
-
-  const captureFrame = (video, time) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement("canvas");
-      video.currentTime = time;
-      video.onseeked = () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0);
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.src = canvas.toDataURL("image/jpeg");
-      };
-    });
-  };
-
-  const formatTime = (seconds) => {
-    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
-    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-    const secs = String(Math.floor(seconds % 60)).padStart(2, "0");
-    return `${hrs}:${mins}:${secs}`;
   };
 
   return (
