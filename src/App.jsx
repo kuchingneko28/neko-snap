@@ -47,10 +47,10 @@ export default function App() {
 
       const thumbHeight = (height / width) * thumbWidth;
       const textLines = 4;
-      const lineSpacing = 6;
+      const padding = 4;
+      const lineSpacing = 8;
       const marginTop = 8;
-      const padding = 2;
-      const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.035)));
+      const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.04)));
       // const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
 
       const headerHeight = marginTop + baseFontSize * textLines + lineSpacing * (textLines - 1);
@@ -84,7 +84,7 @@ export default function App() {
         const textWidth = ctx.measureText(timeStr).width;
         const boxPadding = 4;
         const boxWidth = textWidth + boxPadding * 2;
-        const boxHeight = baseFontSize + 6;
+        const boxHeight = baseFontSize + 4;
 
         ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fillRect(x + thumbWidth - boxWidth - 5, y + thumbHeight - boxHeight - 5, boxWidth, boxHeight);
@@ -142,17 +142,23 @@ export default function App() {
       />
 
       {file && (
-        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm text-gray-700 mb-8 shadow-inner">
-          <p className="break-words">
-            <strong>Filename:</strong> {file.name}
-          </p>
-          <p>
-            <strong>Size:</strong> {(file.size / (1024 * 1024)).toFixed(2)} MB
-          </p>
-          <p>
-            <strong>Type:</strong> {file.type || "Unknown"}
-          </p>
-        </div>
+        <>
+          <h2 className="text-base font-semibold text-gray-700 mb-2">Media Info</h2>
+          <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm text-gray-800 mb-8 shadow-inner space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="font-medium text-gray-600">Filename:</span>
+              <span className="break-all">{file.name}</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="font-medium text-gray-600">Size:</span>
+              <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="font-medium text-gray-600">Type:</span>
+              <span>{file.type || "Unknown"}</span>
+            </div>
+          </div>
+        </>
       )}
 
       <ThumbnailPreview compositeUrl={compositeUrl} file={file} />
