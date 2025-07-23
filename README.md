@@ -1,12 +1,59 @@
-# React + Vite
+# 🐱 NekoSnap
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**NekoSnap** is a simple and fast tool to generate thumbnail grids from video files (like `.mp4`, `.mkv`, `.webm`). With just a few clicks, you can create clean, customizable contact sheets — perfect for previews, archives, or sharing.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🖼️ Generate thumbnail grids (custom rows & columns)
+- 🎥 Supports popular video formats: `.mp4`, `.mkv`, `.webm`, and more
+- 🎟️ Adjustable thumbnail width for high-res grids
+- 🎨 Light/dark background options
+- 📄 Auto-included video metadata (filename, duration, resolution, etc.)
+- ⚡ Fully client-side (privacy friendly, no uploads)
+- 📸 Export thumbnail sheet as high-quality PNG
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/nekosnap.git
+cd nekosnap
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Start the App
+
+```bash
+npm run dev
+```
+
+Open your browser at [http://localhost:5173](http://localhost:5173)
+
+> Built with **Vite**, **React**, and **Tailwind CSS**
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── ControlsPanel.jsx
+│   ├── Input.jsx
+├── utils/
+│   ├── captureFrame.js
+│   ├── formatTime.js
+│   └── wrapText.js
+├── App.jsx
+├── main.jsx
+```
+
+## 📓 License
+
+MIT License
+
+---
