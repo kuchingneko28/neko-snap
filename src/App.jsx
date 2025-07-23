@@ -46,8 +46,14 @@ export default function App() {
       }
 
       const thumbHeight = (height / width) * thumbWidth;
+      const textLines = 4;
+      const lineSpacing = 6;
+      const marginTop = 8;
       const padding = 2;
-      const headerHeight = Math.min(thumbWidth * 0.25, 150);
+      const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.035)));
+      const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
+
+      const headerHeight = marginTop + baseFontSize * textLines + lineSpacing * (textLines - 1);
       const canvas = document.createElement("canvas");
       canvas.width = cols * (thumbWidth + padding) - padding;
       canvas.height = rows * (thumbHeight + padding) - padding + headerHeight;
@@ -57,10 +63,6 @@ export default function App() {
       ctx.fillStyle = background;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.035)));
-      const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
-
-      const marginTop = 4;
       ctx.fillStyle = isDarkBg ? "white" : "black";
       ctx.font = `${baseFontSize}px monospace`;
 
