@@ -83,11 +83,11 @@ export default function App() {
       const baseFontSize = Math.min(48, Math.max(14, Math.floor(20 * fontScale)));
       const marginTop = 12;
       const marginLeft = 12;
-      const marginBotto = 16;
+      const marginBottom = 16;
       const lineSpacing = 4;
       const textLines = 4;
       const labelBlockHeight = baseFontSize + lineSpacing;
-      const headerHeight = marginTop + textLines * labelBlockHeight + marginBotto;
+      const headerHeight = marginTop + textLines * labelBlockHeight + marginBottom;
 
       canvas.height = rows * (thumbHeight + padding) - padding + headerHeight;
 
