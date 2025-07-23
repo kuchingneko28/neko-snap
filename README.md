@@ -41,9 +41,6 @@ src/
 │   ├── ControlsPanel.jsx
 │   ├── Input.jsx
 │   ├── ThumbnailPreview.jsx
-├── utils/
-│   ├── captureFrame.js
-│   ├── formatTime.js
 ├── App.jsx
 ├── main.jsx
 ```
