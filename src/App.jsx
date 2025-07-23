@@ -51,7 +51,7 @@ export default function App() {
       const marginTop = 8;
       const padding = 2;
       const baseFontSize = Math.min(36, Math.max(14, Math.floor(thumbWidth * 0.035)));
-      const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
+      // const smallFontSize = Math.min(24, Math.max(10, Math.floor(thumbWidth * 0.025)));
 
       const headerHeight = marginTop + baseFontSize * textLines + lineSpacing * (textLines - 1);
       const canvas = document.createElement("canvas");
@@ -80,11 +80,11 @@ export default function App() {
         ctx.drawImage(thumb.image, x, y, thumbWidth, thumbHeight);
 
         const timeStr = formatTime(thumb.time);
-        ctx.font = `${smallFontSize}px monospace`;
+        ctx.font = `${baseFontSize}px monospace`;
         const textWidth = ctx.measureText(timeStr).width;
         const boxPadding = 4;
         const boxWidth = textWidth + boxPadding * 2;
-        const boxHeight = smallFontSize + 6;
+        const boxHeight = baseFontSize + 6;
 
         ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fillRect(x + thumbWidth - boxWidth - 5, y + thumbHeight - boxHeight - 5, boxWidth, boxHeight);
