@@ -7,8 +7,6 @@
 - 🖼️ Generate thumbnail grids (custom rows & columns)
 - 🎥 Supports popular video formats: `.mp4`, `.mkv`, `.webm`, and more
 - 🎟️ Adjustable thumbnail width for high-res grids
-- 🎨 Light/dark background options
-- 📄 Auto-included video metadata (filename, duration, resolution, etc.)
 - ⚡ Fully client-side (privacy friendly, no uploads)
 - 📸 Export thumbnail sheet as high-quality PNG
 
@@ -17,7 +15,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/nekosnap.git
+git clone https://github.com/kuchingneko28/nekosnap.git
 cd nekosnap
 ```
 
@@ -35,10 +33,21 @@ npm run dev
 
 Open your browser at [http://localhost:5173](http://localhost:5173)
 
-> Built with **Vite**, **React**, and **Tailwind CSS**
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── ControlsPanel.jsx
+│   ├── Input.jsx
+│   ├── ThumbnailPreview.jsx
+├── utils/
+│   ├── captureFrame.js
+│   ├── formatTime.js
+├── App.jsx
+├── main.jsx
+```
 
 ## 📓 License
 
 MIT License
-
----
