@@ -19,23 +19,47 @@ export default function App() {
   };
 
   const captureFrame = (video, time) => {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
       const ctx = canvas.getContext("2d");
 
-      const onSeeked = () => {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        video.removeEventListener("seeked", onSeeked);
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.src = canvas.toDataURL("image/jpg");
+      const seekToTime = () => {
+        const onSeeked = () => {
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.src = canvas.toDataURL("image/jpeg");
+          } catch (err) {
+            console.error("drawImage failed:", err);
+            resolve(null);
+          } finally {
+            video.removeEventListener("seeked", onSeeked);
+          }
+        };
+
+        video.addEventListener("seeked", onSeeked);
+        video.currentTime = time;
       };
 
-      video.addEventListener("seeked", onSeeked);
-      video.currentTime = time;
+      try {
+        if (video.readyState < 2) {
+          await new Promise((res) => {
+            video.addEventListener("loadeddata", res, { once: true });
+          });
+        }
+
+        await video.play().catch(() => {});
+        video.pause();
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        seekToTime();
+      } catch (error) {
+        console.error("captureFrame error:", error);
+        resolve(null);
+      }
     });
   };
 
@@ -56,6 +80,7 @@ export default function App() {
     video.preload = "metadata";
     video.src = url;
     video.muted = true;
+    video.playsInline = true;
 
     video.onloadedmetadata = async () => {
       const duration = video.duration;
@@ -134,7 +159,7 @@ export default function App() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto font-sans text-gray-800">
+    <div className="p-6 max-w-4xl mx-auto font-jakarta text-gray-800">
       <h1 className="text-3xl font-semibold mb-2 text-center">NekoSnap</h1>
       <p className="text-center text-gray-600 mb-6 text-sm">A simple, cat-powered tool to generate video thumbnail grids with ease.</p>
 
