@@ -23,18 +23,15 @@ export default function App() {
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+
       const ctx = canvas.getContext("2d");
 
       const onSeeked = () => {
-        if (video.readyState >= 2) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.src = canvas.toDataURL("image/png");
-          video.removeEventListener("seeked", onSeeked);
-        } else {
-          setTimeout(onSeeked, 50); // Retry if not ready
-        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        video.removeEventListener("seeked", onSeeked);
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.src = canvas.toDataURL("image/jpg");
       };
 
       video.addEventListener("seeked", onSeeked);
@@ -71,7 +68,6 @@ export default function App() {
 
       const thumbs = [];
       for (let i = 0; i < total; i++) {
-        await new Promise((r) => setTimeout(r, 30)); // ← This helps prevent lockups
         const time = margin + i * interval;
         const thumb = await captureFrame(video, time);
         thumbs.push({ time, image: thumb });
@@ -91,15 +87,15 @@ export default function App() {
       const lineSpacing = 4;
       const textLines = 4;
       const labelBlockHeight = baseFontSize + lineSpacing;
-
       const headerHeight = marginTop + textLines * labelBlockHeight + marginBottom;
+
       canvas.height = rows * (thumbHeight + padding) - padding + headerHeight;
 
       const ctx = canvas.getContext("2d");
       const isDarkBg = background === "black";
-
       ctx.fillStyle = background;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       ctx.fillStyle = isDarkBg ? "white" : "black";
       ctx.font = `${baseFontSize}px monospace`;
 
@@ -120,7 +116,6 @@ export default function App() {
 
         const timeStr = formatTime(thumb.time);
         ctx.font = `${baseFontSize}px monospace`;
-
         const textWidth = ctx.measureText(timeStr).width;
         const boxPadding = 4;
         const boxWidth = textWidth + boxPadding * 2;
@@ -128,6 +123,7 @@ export default function App() {
 
         ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fillRect(x + thumbWidth - boxWidth - 5, y + thumbHeight - boxHeight - 5, boxWidth, boxHeight);
+
         ctx.fillStyle = "white";
         ctx.fillText(timeStr, x + thumbWidth - boxWidth + boxPadding - 5, y + thumbHeight - 10);
       });
