@@ -37,21 +37,6 @@ Open your browser at [http://localhost:5173](http://localhost:5173)
 
 > Built with **Vite**, **React**, and **Tailwind CSS**
 
-## 📁 Project Structure
-
-```
-src/
-├── components/
-│   ├── ControlsPanel.jsx
-│   ├── Input.jsx
-├── utils/
-│   ├── captureFrame.js
-│   ├── formatTime.js
-│   └── wrapText.js
-├── App.jsx
-├── main.jsx
-```
-
 ## 📓 License
 
 MIT License
