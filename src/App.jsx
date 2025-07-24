@@ -1,6 +1,8 @@
 import { useState } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import ThumbnailPreview from "./components/ThumbnailPreview";
+import captureFrame from "./utils/captureFrame";
+import renderCanvas from "./utils/renderCanvas";
 
 export default function App() {
   const [compositeUrl, setCompositeUrl] = useState(null);
@@ -11,6 +13,7 @@ export default function App() {
   const [background, setBackground] = useState("white");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -19,169 +22,78 @@ export default function App() {
     setCompositeUrl(null);
   };
 
-  const captureFrame = (video, time) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      const waitForNextPaint = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-      const onSeeked = async () => {
-        try {
-          await waitForNextPaint(); // smoother than setTimeout
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const image = new Image();
-          image.onload = () => resolve(image);
-          image.src = canvas.toDataURL("image/jpeg");
-        } catch (err) {
-          console.error("drawImage failed:", err);
-          resolve(null);
-        } finally {
-          video.removeEventListener("seeked", onSeeked);
-        }
-      };
-
-      video.addEventListener("seeked", onSeeked);
-      video.currentTime = time;
-    });
-  };
-
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return [h, m, s].map((v) => v.toString().padStart(2, "0")).join(":");
-  };
-
   const handleProcess = async () => {
-    if (!file) return alert("Please select a video file first.");
+    if (!file) {
+      setError("Please select a video file first.");
+      return;
+    }
+    if (!file.type.startsWith("video/")) {
+      setError("The selected file is not a valid video.");
+      return;
+    }
+
     setLoading(true);
     setProgress(0);
     setCompositeUrl(null);
+    setError(null);
 
-    const url = URL.createObjectURL(file);
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.src = url;
-    video.muted = true;
-    video.playsInline = true;
+    try {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
 
-    video.onloadedmetadata = () => {
-      const duration = video.duration;
-      const width = video.videoWidth;
-      const height = video.videoHeight;
-      const total = cols * rows;
-      const margin = 0.05 * duration;
-      const interval = (duration - 2 * margin) / total;
-      const thumbs = [];
+      video.onloadedmetadata = () => {
+        const duration = video.duration;
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        const total = cols * rows;
+        const margin = 0.05 * duration;
+        const interval = (duration - 2 * margin) / total;
+        const thumbs = [];
 
-      const processInChunks = async (index = 0) => {
-        const chunkSize = 1;
+        const processInChunks = async (index = 0) => {
+          const chunkSize = 1;
 
-        for (let i = 0; i < chunkSize && index < total; i++, index++) {
-          const time = margin + index * interval;
-          const thumb = await captureFrame(video, time);
-          thumbs.push({ time, image: thumb });
+          for (let i = 0; i < chunkSize && index < total; i++, index++) {
+            const time = Math.round(margin + index * interval);
+            const thumb = await captureFrame(video, time);
+            thumbs.push({ time, image: thumb });
 
-          setProgress(Math.round(((index + 1) / total) * 100));
-        }
-
-        if (index < total) {
-          setTimeout(() => processInChunks(index), 20);
-        } else {
-          renderCanvas(thumbs, duration, width, height);
-        }
-      };
-
-      const renderCanvas = (thumbs, duration, width, height) => {
-        const padding = 4;
-        const thumbHeight = (height / width) * thumbWidth;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = cols * (thumbWidth + padding) - padding;
-
-        const fontScale = canvas.width / 1200;
-        const baseFontSize = Math.min(48, Math.max(14, Math.floor(20 * fontScale)));
-        const marginTop = 16;
-        const marginLeft = 16;
-        const marginBottom = 16;
-        const lineSpacing = 8;
-        const labelBlockHeight = baseFontSize + lineSpacing;
-
-        const ctx = canvas.getContext("2d");
-        ctx.font = `${baseFontSize}px monospace`;
-
-        const rawLabels = [`Filename: ${file.name}`, `File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${width}x${height}`];
-        const maxTextWidth = canvas.width - marginLeft * 2;
-        const wrappedLines = [];
-
-        rawLabels.forEach((label, index) => {
-          if (index === 0) {
-            let currentLine = "";
-            const chars = label.split("");
-            for (const char of chars) {
-              const testLine = currentLine + char;
-              if (ctx.measureText(testLine).width > maxTextWidth) {
-                wrappedLines.push(currentLine);
-                currentLine = char;
-              } else {
-                currentLine = testLine;
-              }
-            }
-            if (currentLine) wrappedLines.push(currentLine);
-          } else {
-            wrappedLines.push(label);
+            setProgress(Math.round(((index + 1) / total) * 100));
           }
-        });
 
-        const textLines = wrappedLines.length;
-        const headerHeight = marginTop + textLines * labelBlockHeight + marginBottom;
+          if (index < total) {
+            setTimeout(() => processInChunks(index), 20);
+          } else {
+            renderCanvas({
+              thumbs,
+              duration,
+              width,
+              height,
+              cols,
+              rows,
+              thumbWidth,
+              background,
+              file,
+              setCompositeUrl,
+              setLoading,
+            });
+          }
+        };
 
-        canvas.height = rows * (thumbHeight + padding) - padding + headerHeight;
-
-        const isDarkBg = background === "black";
-        ctx.fillStyle = background;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = isDarkBg ? "white" : "black";
-        ctx.font = `${baseFontSize}px monospace`;
-
-        wrappedLines.forEach((line, i) => {
-          const y = marginTop + i * labelBlockHeight + baseFontSize;
-          ctx.fillText(line, marginLeft, y);
-        });
-
-        thumbs.forEach((thumb, idx) => {
-          const col = idx % cols;
-          const row = Math.floor(idx / cols);
-          const x = col * (thumbWidth + padding);
-          const y = row * (thumbHeight + padding) + headerHeight;
-
-          ctx.drawImage(thumb.image, x, y, thumbWidth, thumbHeight);
-
-          const timeStr = formatTime(thumb.time);
-          ctx.font = `${baseFontSize}px monospace`;
-          const textWidth = ctx.measureText(timeStr).width;
-          const boxPadding = 4;
-          const boxWidth = textWidth + boxPadding * 2;
-          const boxHeight = baseFontSize + 4;
-
-          ctx.fillStyle = "rgba(0,0,0,0.6)";
-          ctx.fillRect(x + thumbWidth - boxWidth - 5, y + thumbHeight - boxHeight - 5, boxWidth, boxHeight);
-
-          ctx.fillStyle = "white";
-          ctx.fillText(timeStr, x + thumbWidth - boxWidth + boxPadding - 5, y + thumbHeight - 10);
-        });
-
-        setCompositeUrl(canvas.toDataURL("image/png"));
-        setLoading(false);
+        processInChunks();
       };
-
-      processInChunks();
-    };
+      video.onerror = () => {
+        throw new Error("Failed to load video metadata.");
+      };
+    } catch (err) {
+      console.error("Video processing failed:", err);
+      setError("An error occurred while processing the video. Please try a different file.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -225,7 +137,7 @@ export default function App() {
           </div>
         </>
       )}
-      {loading && (
+      {loading && !error && (
         <div className="mb-6 bg-teal-50 p-4 rounded-lg border border-teal-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-teal-800">Processing video...</span>
@@ -234,6 +146,12 @@ export default function App() {
           <div className="w-full bg-teal-200 rounded-full h-2">
             <div className="bg-teal-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
           </div>
+        </div>
+      )}
+
+      {error && !file && (
+        <div className="mb-6 bg-red-50 p-4 rounded-lg border border-red-200 text-sm text-red-800">
+          <strong>Error:</strong> {error}
         </div>
       )}
 
