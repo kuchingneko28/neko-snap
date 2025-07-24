@@ -44,6 +44,7 @@ export default function App() {
       video.src = url;
       video.muted = true;
       video.playsInline = true;
+      video.crossOrigin = "anonymous";
 
       video.onloadedmetadata = () => {
         const duration = video.duration;
@@ -58,7 +59,7 @@ export default function App() {
           const chunkSize = 1;
 
           for (let i = 0; i < chunkSize && index < total; i++, index++) {
-            const time = Math.round(margin + index * interval);
+            const time = margin + index * interval;
             const thumb = await captureFrame(video, time);
             thumbs.push({ time, image: thumb });
 

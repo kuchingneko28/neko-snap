@@ -5,24 +5,21 @@ const captureFrame = (video, time) => {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
 
-    const waitForNextPaint = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const waitAfterSeek = () => new Promise((r) => setTimeout(() => requestAnimationFrame(r), 80));
 
-    const onSeeked = async () => {
-      try {
-        await waitForNextPaint();
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.src = canvas.toDataURL("image/jpeg");
-      } catch (err) {
-        console.error("drawImage failed:", err);
-        resolve(null);
-      } finally {
-        video.removeEventListener("seeked", onSeeked);
-      }
+    const seekAndCapture = async () => {
+      video.removeEventListener("seeked", seekAndCapture); // cleanup
+
+      await waitAfterSeek();
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.src = canvas.toDataURL("image/jpeg");
     };
 
-    video.addEventListener("seeked", onSeeked);
+    video.addEventListener("seeked", seekAndCapture);
+    video.pause();
     video.currentTime = time;
   });
 };
