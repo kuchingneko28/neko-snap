@@ -138,3 +138,21 @@ input:checked + .slider:before {
   color: #f1f1f1 !important;
   border-color: #444 !important;
 }
+
+.dark .bg-teal-50 {
+  background-color: #232323 !important;
+  color: #f1f1f1 !important;
+}
+.dark .border-teal-200 {
+  border-color: #444 !important;
+}
+.dark .bg-teal-200 {
+  background-color: #353535 !important;
+}
+.dark .bg-teal-600 {
+  background-color: #14b8a6 !important;
+}
+
+.dark .text-teal-800 {
+  color: #5eead4 !important; /* Tailwind teal-300, very light */
+}
