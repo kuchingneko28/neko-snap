@@ -118,6 +118,7 @@ export default function App() {
           <span className="text-teal-600">Neko</span>Snap
         </h1>
         <p className="text-center subtitle mb-6 text-sm">A simple, cat-powered tool to generate video thumbnail grids with ease.</p>
+
         <ControlsPanel
           file={file}
           onFileChange={handleFileChange}
