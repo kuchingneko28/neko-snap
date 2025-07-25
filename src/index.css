@@ -132,3 +132,9 @@ input:checked + .slider:before {
     margin-top: 0.5rem;
   }
 }
+
+.dark .media-info-box {
+  background: #232323 !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}

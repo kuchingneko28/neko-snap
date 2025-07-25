@@ -137,7 +137,7 @@ export default function App() {
         {file && (
           <>
             <h2 className="text-base font-semibold text-gray-700 mb-2">Media Info</h2>
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm text-gray-800 mb-8 shadow-inner space-y-2">
+            <div className="media-info-box bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm text-gray-800 mb-8 shadow-inner space-y-2">
               <div>
                 <span className="font-medium text-gray-600 mb-1">Filename:</span>
                 <span className="break-words">{file.name}</span>
