@@ -4,3 +4,131 @@
 @theme {
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
 }
+
+/* Switch styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #bbb;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #2196F3;
+}
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Dark mode styles */
+.dark {
+  background: #181818;
+  color: #f1f1f1;
+}
+.dark .switch .slider {
+  background-color: #444;
+}
+.dark .switch input:checked + .slider {
+  background-color: #2196F3;
+}
+
+/* Main panel styles */
+.main-panel {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.08);
+  padding: 2rem;
+}
+
+.dark .main-panel {
+  background: #232323;
+  color: #f1f1f1;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.32);
+}
+
+/* Subtitle and footer text */
+.subtitle {
+  color: #666;
+}
+.dark .subtitle {
+  color: #bbb;
+}
+.footer {
+  color: #bbb;
+}
+.dark .footer {
+  color: #eee;
+}
+
+/* ControlsPanel dark mode styles */
+.dark .bg-white {
+  background-color: #292929 !important;
+}
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #444 !important;
+}
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-600 {
+  color: #eee !important;
+}
+.dark .bg-gray-100 {
+  background-color: #353535 !important;
+}
+.dark .hover\:bg-gray-200:hover {
+  background-color: #444 !important;
+}
+.dark select,
+.dark input {
+  background-color: #232323 !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}
+.dark .shadow-md,
+.dark .shadow-inner {
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.32) !important;
+}
+
+.dark-toggle-container {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  z-index: 10;
+}
+
+@media (max-width: 640px) {
+  .dark-toggle-container {
+    position: static;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    margin-top: 0.5rem;
+  }
+}
