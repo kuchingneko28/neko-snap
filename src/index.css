@@ -4,3 +4,5 @@
 @theme {
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
 }
+
+@variant dark (.dark &);
