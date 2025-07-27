@@ -1,86 +1,54 @@
 import formatTime from "./formatTime";
 
-export default async function renderCanvas({ thumbs, duration, width, height, cols, rows, thumbWidth, background, file, setCompositeUrl, setLoading }) {
-  const padding = 4;
-  const thumbHeight = (height / width) * thumbWidth;
-  const canvasWidth = cols * (thumbWidth + padding) - padding;
+export default async function renderCanvas({ thumbs, duration, originalWidth, originalHeight, cols, rows, canvasWidth, background, file, setCompositeUrl, setLoading }) {
+  const padding = 8;
+  const aspectRatio = thumbs[0].image.naturalHeight / thumbs[0].image.naturalWidth;
 
-  const headerCanvas = document.createElement("canvas");
-  headerCanvas.width = canvasWidth;
-  const ctxHdr = headerCanvas.getContext("2d");
-  ctxHdr.font = "16px monospace";
-  const rawLabels = [`Filename: ${file.name}`, `File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${width}x${height}`];
-  const marginLeft = canvasWidth * 0.014;
-  const marginTop = canvasWidth * 0.014;
-  const lineSpacing = canvasWidth * 0.008;
-  const maxTextWidth = canvasWidth - marginLeft * 2;
-  const wrappedLines = [];
+  const thumbWidth = Math.floor((canvasWidth - (cols - 1) * padding) / cols);
+  const thumbHeight = Math.floor(thumbWidth * aspectRatio);
+  const fontSize = Math.max(12, Math.floor(canvasWidth * 0.013));
 
-  rawLabels.forEach((lbl, idx) => {
-    if (idx === 0) {
-      let line = "";
-      for (const ch of lbl) {
-        const test = line + ch;
-        if (ctxHdr.measureText(test).width > maxTextWidth) {
-          wrappedLines.push(line);
-          line = ch;
-        } else line = test;
-      }
-      if (line) wrappedLines.push(line);
-    } else wrappedLines.push(lbl);
-  });
+  const headerLines = [`${file.name}`, `File size: ${(file.size / 1024 / 1024).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${originalWidth}x${originalHeight}`];
 
-  const baseWidth = 1200;
-  const baseFontSize = 16;
-  const ratio = baseFontSize / baseWidth;
-  const fontSize = Math.max(12, Math.floor(canvasWidth * ratio));
-  const labelBlockHeight = fontSize + lineSpacing;
-  const headerHeight = marginTop + wrappedLines.length * labelBlockHeight + marginTop;
-  headerCanvas.height = headerHeight;
-
-  ctxHdr.fillStyle = background;
-  ctxHdr.fillRect(0, 0, canvasWidth, headerHeight);
-  ctxHdr.fillStyle = background === "black" ? "white" : "black";
-  ctxHdr.font = `${fontSize}px monospace`;
-  wrappedLines.forEach((l, i) => {
-    const y = marginTop + i * labelBlockHeight + fontSize;
-    ctxHdr.fillText(l, marginLeft, y);
-  });
+  const margin = 12;
+  const lineSpacing = 6;
+  const headerHeight = margin * 2 + headerLines.length * (fontSize + lineSpacing);
 
   const canvas = document.createElement("canvas");
   canvas.width = canvasWidth;
-  canvas.height = headerHeight + rows * (thumbHeight + padding) - padding;
+  canvas.height = headerHeight + rows * thumbHeight + (rows - 1) * padding;
 
-  const ctx = canvas.getContext("2d", { willReadFrequently: false });
-
+  const ctx = canvas.getContext("2d");
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.drawImage(headerCanvas, 0, 0);
-
+  // Draw header
   ctx.font = `${fontSize}px monospace`;
-  thumbs.forEach((t, idx) => {
-    const col = idx % cols;
-    const row = Math.floor(idx / cols);
+  ctx.fillStyle = background === "white" ? "black" : "white";
+  headerLines.forEach((line, i) => {
+    const y = margin + i * (fontSize + lineSpacing) + fontSize;
+    ctx.fillText(line, margin, y);
+  });
+
+  // Draw grid
+  thumbs.forEach(({ image, time }, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
     const x = col * (thumbWidth + padding);
     const y = headerHeight + row * (thumbHeight + padding);
 
-    ctx.drawImage(t.image, x, y, thumbWidth, thumbHeight);
+    ctx.drawImage(image, x, y, thumbWidth, thumbHeight);
 
-    const timeStr = formatTime(t.time);
-    const textWidth = ctx.measureText(timeStr).width;
+    // Timestamp box
+    const timeStr = formatTime(time);
+    const textW = ctx.measureText(timeStr).width;
     const boxPad = 4;
-    const verticalPadding = 8;
-    const boxW = textWidth + boxPad * 2;
-    const boxH = fontSize + verticalPadding;
+    const boxH = fontSize + boxPad * 2;
+    const boxW = textW + boxPad * 2;
+    const boxX = x + thumbWidth - boxW - 6;
+    const boxY = y + thumbHeight - boxH - 6;
 
-    const paddingRight = Math.max(8, thumbWidth * 0.02);
-    const paddingBottom = Math.max(8, thumbHeight * 0.02);
-
-    const boxX = x + thumbWidth - boxW - paddingRight;
-    const boxY = y + thumbHeight - boxH - paddingBottom;
-
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillRect(boxX, boxY, boxW, boxH);
 
     ctx.fillStyle = "white";
@@ -89,8 +57,7 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
   });
 
   canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    setCompositeUrl(url);
+    setCompositeUrl(URL.createObjectURL(blob));
     setLoading(false);
   }, "image/png");
 }

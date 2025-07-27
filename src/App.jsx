@@ -9,10 +9,10 @@ import useDarkMode from "./utils/userDarkMode";
 export default function App() {
   const [compositeUrl, setCompositeUrl] = useState(null);
   const [file, setFile] = useState(null);
-  const [cols, setCols] = useState(3);
+  const [cols, setCols] = useState(4);
   const [rows, setRows] = useState(3);
-  const [thumbWidth, setThumbWidth] = useState(320);
-  const [background, setBackground] = useState("white");
+  const [canvasWidth, setCanvasWidth] = useState(1920);
+  const [background, setBackground] = useState("dark");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -20,7 +20,6 @@ export default function App() {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
     setFile(selectedFile);
     setCompositeUrl(null);
   };
@@ -77,11 +76,11 @@ export default function App() {
             renderCanvas({
               thumbs,
               duration,
-              width,
-              height,
+              originalWidth: width,
+              originalHeight: height,
               cols,
               rows,
-              thumbWidth,
+              canvasWidth,
               background,
               file,
               setCompositeUrl,
@@ -119,8 +118,8 @@ export default function App() {
         setCols={setCols}
         rows={rows}
         setRows={setRows}
-        thumbWidth={thumbWidth}
-        setThumbWidth={setThumbWidth}
+        canvasWidth={canvasWidth}
+        setCanvasWidth={setCanvasWidth}
         background={background}
         setBackground={setBackground}
         onGenerate={handleProcess}

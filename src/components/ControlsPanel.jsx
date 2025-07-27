@@ -1,7 +1,7 @@
 import { Upload, PlayCircle } from "lucide-react";
 import Input from "./Input";
 
-export default function ControlsPanel({ file, onFileChange, cols, setCols, rows, setRows, thumbWidth, setThumbWidth, background, setBackground, onGenerate, loading }) {
+export default function ControlsPanel({ file, onFileChange, cols, setCols, rows, setRows, canvasWidth, setCanvasWidth, background, setBackground, onGenerate, loading }) {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-8 shadow-md space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -26,7 +26,7 @@ export default function ControlsPanel({ file, onFileChange, cols, setCols, rows,
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Input label="Columns" value={cols} setValue={setCols} min={1} max={10} />
         <Input label="Rows" value={rows} setValue={setRows} min={1} max={10} />
-        <Input label="Thumbnail Width (px)" value={thumbWidth} setValue={setThumbWidth} min={100} max={3000} />
+        <Input label="Canvas Width (px)" value={canvasWidth} setValue={setCanvasWidth} min={320} max={2160} />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -36,8 +36,8 @@ export default function ControlsPanel({ file, onFileChange, cols, setCols, rows,
           onChange={(e) => setBackground(e.target.value)}
           className="w-full sm:w-60 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
-          <option value="white">White</option>
           <option value="black">Black</option>
+          <option value="white">White</option>
         </select>
       </div>
     </div>
