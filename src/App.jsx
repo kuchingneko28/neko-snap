@@ -10,7 +10,7 @@ export default function App() {
   const [compositeUrl, setCompositeUrl] = useState(null);
   const [file, setFile] = useState(null);
   const [cols, setCols] = useState(4);
-  const [rows, setRows] = useState(3);
+  const [rows, setRows] = useState(4);
   const [canvasWidth, setCanvasWidth] = useState(1500);
   const [background, setBackground] = useState("dark");
   const [loading, setLoading] = useState(false);
@@ -130,11 +130,10 @@ export default function App() {
           <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 mb-8 shadow-md space-y-2">
             <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600 dark:text-gray-300 mb-1">Filename:</span>
-              <span className="break-words">{file.name}</span>
+              <span className="break-words font-medium">{file.name}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600 dark:text-gray-300">Size:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300">FileSize:</span>
               <span className="break-words">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
