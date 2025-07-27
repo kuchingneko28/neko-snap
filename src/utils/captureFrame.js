@@ -13,7 +13,7 @@ const captureFrame = (video, targetTime, fps) => {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => {
         const img = new Image();
-        img.onload = () => resolve({ img, actualTime: video.currentTime });
+        img.onload = () => resolve({ img, time: video.currentTime });
         img.src = URL.createObjectURL(blob);
       }, "image/jpeg");
     };

@@ -66,14 +66,13 @@ export default function App() {
             const time = margin + index * interval;
 
             const result = await captureFrame(video, time, fps);
-            console.log(result);
-            thumbs.push({ time: result.actualTime, image: result.img });
+            thumbs.push({ time, image: result.img });
 
             setProgress(Math.round(((index + 1) / total) * 100));
           }
 
           if (index < total) {
-            setTimeout(() => processInChunks(index), 20);
+            setTimeout(() => processInChunks(index), 100);
           } else {
             renderCanvas({
               thumbs,
@@ -88,6 +87,7 @@ export default function App() {
               setCompositeUrl,
               setLoading,
             });
+            URL.revokeObjectURL(video.src);
           }
         };
 
