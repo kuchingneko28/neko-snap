@@ -23,9 +23,15 @@ export default function Input({ label, value, setValue, min, max }) {
   };
 
   return (
-    <label className="text-sm font-medium text-gray-700">
+    <label className="text-sm font-medium text-gray-700 dark:text-gray-100">
       {label}
-      <input type="number" value={value} onChange={handleChange} onBlur={handleBlur} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800" />
+      <input
+        type="number"
+        value={value}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800 dark:text-gray-100"
+      />
     </label>
   );
 }

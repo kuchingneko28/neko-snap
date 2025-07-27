@@ -1,8 +1,10 @@
 import { useState } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import ThumbnailPreview from "./components/ThumbnailPreview";
+import DarkModeToggle from "./components/DarkModeToggle";
 import captureFrame from "./utils/captureFrame";
 import renderCanvas from "./utils/renderCanvas";
+import useDarkMode from "./utils/userDarkMode";
 
 export default function App() {
   const [compositeUrl, setCompositeUrl] = useState(null);
@@ -14,6 +16,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useDarkMode();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -98,12 +101,14 @@ export default function App() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto font-jakarta text-gray-800">
+    <div className="relative p-6 max-w-4xl mx-auto font-jakarta bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
       <h1 className="text-3xl font-semibold mb-2 text-center">
         <span className="text-teal-600">Neko</span>Snap
       </h1>
-      <p className="text-center text-gray-600 mb-6 text-sm">A simple, cat-powered tool to generate video thumbnail grids with ease.</p>
-
+      <p className="text-center text-gray-600 dark:text-gray-400 mb-6 text-sm">A simple, cat-powered tool to generate video thumbnail grids with ease.</p>
+      <div className="absolute top-10 right-10 z-10 max-sm:static max-sm:flex max-sm:justify-center max-sm:mb-6 max-sm:mt-2">
+        <DarkModeToggle darkMode={darkMode} onToggle={() => setDarkMode((d) => !d)} />
+      </div>
       <ControlsPanel
         file={file}
         onFileChange={handleFileChange}
@@ -118,49 +123,45 @@ export default function App() {
         onGenerate={handleProcess}
         loading={loading}
       />
-
       {file && (
         <>
-          <h2 className="text-base font-semibold text-gray-700 mb-2">Media Info</h2>
-          <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm text-gray-800 mb-8 shadow-inner space-y-2">
+          <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
+          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 mb-8 shadow-inner space-y-2">
             <div>
-              <span className="font-medium text-gray-600 mb-1">Filename:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300 mb-1">Filename:</span>
               <span className="break-words">{file.name}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600">Size:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300">Size:</span>
               <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600">Type:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300">Type:</span>
               <span>{file.type || "Unknown"}</span>
             </div>
           </div>
         </>
       )}
       {loading && !error && (
-        <div className="mb-6 bg-teal-50 p-4 rounded-lg border border-teal-200">
+        <div className="mb-6 bg-teal-50 dark:bg-teal-800 p-4 rounded-lg border border-teal-200 dark:border-teal-600">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-teal-800">Processing video...</span>
-            <span className="text-sm text-teal-600">{progress}%</span>
+            <span className="text-sm font-medium text-teal-800 dark:text-teal-100">Processing video...</span>
+            <span className="text-sm text-teal-600 dark:text-teal-200">{progress}%</span>
           </div>
-          <div className="w-full bg-teal-200 rounded-full h-2">
-            <div className="bg-teal-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+          <div className="w-full bg-teal-200 dark:bg-teal-900 rounded-full h-2">
+            <div className="bg-teal-600 dark:bg-teal-400 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
-
       {error && !file && (
-        <div className="mb-6 bg-red-50 p-4 rounded-lg border border-red-200 text-sm text-red-800">
+        <div className="mb-6 bg-red-50 dark:bg-red-900 p-4 rounded-lg border border-red-200 dark:border-red-700 text-sm text-red-800 dark:text-red-100">
           <strong>Error:</strong> {error}
         </div>
       )}
-
       <ThumbnailPreview compositeUrl={compositeUrl} file={file} />
-
-      <footer className="mt-12 text-center text-gray-400 text-sm">
+      <footer className="mt-12 text-center text-gray-400 dark:text-gray-500 text-sm">
         Created with ❤️ by{" "}
-        <a className="hover:underline" href="https://web.facebook.com/kuchingneko">
+        <a className="hover:underline text-teal-600 dark:text-teal-400" href="https://web.facebook.com/kuchingneko" target="_blank" rel="noopener noreferrer">
           Tuan Kuchiing
         </a>
       </footer>
