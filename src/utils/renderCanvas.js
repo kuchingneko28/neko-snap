@@ -70,8 +70,9 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
     const timeStr = formatTime(t.time);
     const textWidth = ctx.measureText(timeStr).width;
     const boxPad = 4;
+    const verticalPadding = 8;
     const boxW = textWidth + boxPad * 2;
-    const boxH = fontSize + boxPad * 2;
+    const boxH = fontSize + verticalPadding;
 
     const paddingRight = Math.max(8, thumbWidth * 0.02);
     const paddingBottom = Math.max(8, thumbHeight * 0.02);
@@ -83,7 +84,8 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
     ctx.fillRect(boxX, boxY, boxW, boxH);
 
     ctx.fillStyle = "white";
-    ctx.fillText(timeStr, boxX + boxPad, boxY + boxH - boxPad - 2);
+    ctx.textBaseline = "middle";
+    ctx.fillText(timeStr, boxX + boxPad, boxY + boxH / 2);
   });
 
   canvas.toBlob((blob) => {
