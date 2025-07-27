@@ -10,9 +10,9 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
   const ctxHdr = headerCanvas.getContext("2d");
   ctxHdr.font = "16px monospace";
   const rawLabels = [`Filename: ${file.name}`, `File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${width}x${height}`];
-  const marginLeft = canvasWidth * 0.02;
-  const marginTop = canvasWidth * 0.02;
-  const lineSpacing = canvasWidth * 0.01;
+  const marginLeft = canvasWidth * 0.014;
+  const marginTop = canvasWidth * 0.014;
+  const lineSpacing = canvasWidth * 0.008;
   const maxTextWidth = canvasWidth - marginLeft * 2;
   const wrappedLines = [];
 
@@ -31,7 +31,7 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
   });
 
   const baseWidth = 1200;
-  const baseFontSize = 20;
+  const baseFontSize = 16;
   const ratio = baseFontSize / baseWidth;
   const fontSize = Math.max(12, Math.floor(canvasWidth * ratio));
   const labelBlockHeight = fontSize + lineSpacing;
@@ -71,13 +71,19 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
     const textWidth = ctx.measureText(timeStr).width;
     const boxPad = 4;
     const boxW = textWidth + boxPad * 2;
-    const boxH = fontSize + 4;
+    const boxH = fontSize + boxPad * 2;
+
+    const paddingRight = Math.max(8, thumbWidth * 0.02);
+    const paddingBottom = Math.max(8, thumbHeight * 0.02);
+
+    const boxX = x + thumbWidth - boxW - paddingRight;
+    const boxY = y + thumbHeight - boxH - paddingBottom;
 
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x + thumbWidth - boxW - 8, y + thumbHeight - boxH - 8, boxW, boxH);
+    ctx.fillRect(boxX, boxY, boxW, boxH);
 
     ctx.fillStyle = "white";
-    ctx.fillText(timeStr, x + thumbWidth - boxW + boxPad - 8, y + thumbHeight - 12);
+    ctx.fillText(timeStr, boxX + boxPad, boxY + boxH - boxPad - 2);
   });
 
   canvas.toBlob((blob) => {
