@@ -10,9 +10,9 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
   const ctxHdr = headerCanvas.getContext("2d");
   ctxHdr.font = "16px monospace";
   const rawLabels = [`Filename: ${file.name}`, `File size: ${(file.size / (1024 * 1024)).toFixed(1)} MB`, `Duration: ${formatTime(duration)}`, `Dimensions: ${width}x${height}`];
-  const marginLeft = 16,
-    marginTop = 16,
-    lineSpacing = 8;
+  const marginLeft = canvasWidth * 0.02;
+  const marginTop = canvasWidth * 0.02;
+  const lineSpacing = canvasWidth * 0.01;
   const maxTextWidth = canvasWidth - marginLeft * 2;
   const wrappedLines = [];
 
@@ -30,17 +30,20 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
     } else wrappedLines.push(lbl);
   });
 
-  const baseFontSize = 16;
-  const labelBlockHeight = baseFontSize + lineSpacing;
+  const baseWidth = 1200;
+  const baseFontSize = 20;
+  const ratio = baseFontSize / baseWidth;
+  const fontSize = Math.max(12, Math.floor(canvasWidth * ratio));
+  const labelBlockHeight = fontSize + lineSpacing;
   const headerHeight = marginTop + wrappedLines.length * labelBlockHeight + marginTop;
   headerCanvas.height = headerHeight;
 
   ctxHdr.fillStyle = background;
   ctxHdr.fillRect(0, 0, canvasWidth, headerHeight);
   ctxHdr.fillStyle = background === "black" ? "white" : "black";
-  ctxHdr.font = `${baseFontSize}px monospace`;
+  ctxHdr.font = `${fontSize}px monospace`;
   wrappedLines.forEach((l, i) => {
-    const y = marginTop + i * labelBlockHeight + baseFontSize;
+    const y = marginTop + i * labelBlockHeight + fontSize;
     ctxHdr.fillText(l, marginLeft, y);
   });
 
@@ -55,7 +58,7 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
 
   ctx.drawImage(headerCanvas, 0, 0);
 
-  ctx.font = `${baseFontSize}px monospace`;
+  ctx.font = `${fontSize}px monospace`;
   thumbs.forEach((t, idx) => {
     const col = idx % cols;
     const row = Math.floor(idx / cols);
@@ -68,13 +71,13 @@ export default async function renderCanvas({ thumbs, duration, width, height, co
     const textWidth = ctx.measureText(timeStr).width;
     const boxPad = 4;
     const boxW = textWidth + boxPad * 2;
-    const boxH = baseFontSize + 4;
+    const boxH = fontSize + 4;
 
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x + thumbWidth - boxW - 5, y + thumbHeight - boxH - 5, boxW, boxH);
+    ctx.fillRect(x + thumbWidth - boxW - 8, y + thumbHeight - boxH - 8, boxW, boxH);
 
     ctx.fillStyle = "white";
-    ctx.fillText(timeStr, x + thumbWidth - boxW + boxPad - 5, y + thumbHeight - 10);
+    ctx.fillText(timeStr, x + thumbWidth - boxW + boxPad - 8, y + thumbHeight - 12);
   });
 
   canvas.toBlob((blob) => {
