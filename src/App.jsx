@@ -11,7 +11,7 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [cols, setCols] = useState(4);
   const [rows, setRows] = useState(3);
-  const [canvasWidth, setCanvasWidth] = useState(1920);
+  const [canvasWidth, setCanvasWidth] = useState(1500);
   const [background, setBackground] = useState("dark");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
