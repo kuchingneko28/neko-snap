@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import ThumbnailPreview from "./components/ThumbnailPreview";
 import DarkModeToggle from "./components/DarkModeToggle";
