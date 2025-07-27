@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import ThumbnailPreview from "./components/ThumbnailPreview";
 import DarkModeToggle from "./components/DarkModeToggle";
@@ -62,9 +62,12 @@ export default function App() {
           const chunkSize = 1;
 
           for (let i = 0; i < chunkSize && index < total; i++, index++) {
+            const fps = video.videoHeight > 0 ? video.videoWidth / video.duration : 30;
             const time = margin + index * interval;
-            const thumb = await captureFrame(video, time);
-            thumbs.push({ time, image: thumb });
+
+            const result = await captureFrame(video, time, fps);
+            console.log(result);
+            thumbs.push({ time: result.actualTime, image: result.img });
 
             setProgress(Math.round(((index + 1) / total) * 100));
           }
@@ -125,19 +128,19 @@ export default function App() {
       />
       {file && (
         <>
-          <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
-          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 mb-8 shadow-inner space-y-2">
-            <div>
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 mb-8 shadow-md space-y-2">
+            <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
               <span className="font-medium text-gray-600 dark:text-gray-300 mb-1">Filename:</span>
               <span className="break-words">{file.name}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
               <span className="font-medium text-gray-600 dark:text-gray-300">Size:</span>
-              <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+              <span className="break-words">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
               <span className="font-medium text-gray-600 dark:text-gray-300">Type:</span>
-              <span>{file.type || "Unknown"}</span>
+              <span className="break-words">{file.type || "Unknown"}</span>
             </div>
           </div>
         </>
