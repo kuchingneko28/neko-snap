@@ -134,7 +134,7 @@ export default function App() {
             <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
             <p className="break-words font-medium">{file.name}</p>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600 dark:text-gray-300">FileSize:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300">File Size:</span>
               <span className="break-words">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
