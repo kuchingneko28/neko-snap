@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRef } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import ThumbnailPreview from "./components/ThumbnailPreview";
 import DarkModeToggle from "./components/DarkModeToggle";
@@ -17,6 +18,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useDarkMode();
+  const videoRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -25,8 +27,8 @@ export default function App() {
   };
 
   const handleProcess = async () => {
-    if (!file) {
-      setError("Please select a video file first.");
+    if (!file.type || !file.type.includes("video")) {
+      setError("Unsupported file type. Please select a video.");
       return;
     }
     if (!file.type.startsWith("video/")) {
@@ -41,7 +43,8 @@ export default function App() {
 
     try {
       const url = URL.createObjectURL(file);
-      const video = document.createElement("video");
+      const video = videoRef.current || document.createElement("video");
+      videoRef.current = video;
       video.preload = "metadata";
       video.src = url;
       video.muted = true;
@@ -58,14 +61,13 @@ export default function App() {
         const thumbs = [];
 
         const processInChunks = async (index = 0) => {
-          const chunkSize = 1;
-
+          const chunkSize = Math.max(1, Math.floor(total / 20));
           for (let i = 0; i < chunkSize && index < total; i++, index++) {
             const fps = video.videoHeight > 0 ? video.videoWidth / video.duration : 30;
             const time = margin + index * interval;
 
             const result = await captureFrame(video, time, fps);
-            thumbs.push({ time, image: result.img });
+            thumbs.push({ time: result.time, image: result.img });
 
             setProgress(Math.round(((index + 1) / total) * 100));
           }
@@ -86,7 +88,8 @@ export default function App() {
               setCompositeUrl,
               setLoading,
             });
-            URL.revokeObjectURL(video.src);
+
+            videoRef.current.src = "";
           }
         };
 
