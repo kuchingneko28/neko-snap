@@ -17,6 +17,8 @@ export default function ControlsPanel({
   background,
   setBackground,
   onGenerate,
+  onCancel,
+  onDownloadAll,
   loading,
 }) {
   return (
@@ -229,20 +231,12 @@ export default function ControlsPanel({
       </div>
 
       {/* Action Button */}
-      <div className="pt-4">
-        <button
-          onClick={onGenerate}
-          disabled={loading || !file}
-          className={`
-            w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200
-            ${
-              loading || !file
-                ? "bg-ctp-surface0 text-ctp-overlay0 cursor-not-allowed border border-ctp-surface1"
-                : "bg-linear-to-r from-ctp-blue to-ctp-sapphire hover:from-ctp-blue/90 hover:to-ctp-sapphire/90 text-ctp-base shadow-lg shadow-ctp-blue/20 transform active:scale-[0.98]"
-            }
-          `}
-        >
-          {loading ? (
+      <div className="pt-4 space-y-3">
+        {loading ? (
+          <button
+            onClick={onCancel}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200 bg-linear-to-r from-ctp-red to-pink-600 hover:from-ctp-red/90 hover:to-pink-600/90 text-ctp-base shadow-lg shadow-ctp-red/20 transform active:scale-[0.98]"
+          >
             <span className="flex items-center gap-2">
               <svg
                 className="animate-spin h-4 w-4 text-current"
@@ -257,15 +251,37 @@ export default function ControlsPanel({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Generating...
+              Cancel Processing
             </span>
-          ) : (
-            <>
-              <PlayCircle className="w-5 h-5" />
-              Generate Contact Sheet
-            </>
-          )}
-        </button>
+          </button>
+        ) : (
+          <button
+            onClick={onGenerate}
+            disabled={!file}
+            className={`
+              w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200
+              ${
+                !file
+                  ? "bg-ctp-surface0 text-ctp-overlay0 cursor-not-allowed border border-ctp-surface1"
+                  : "bg-linear-to-r from-ctp-blue to-ctp-sapphire hover:from-ctp-blue/90 hover:to-ctp-sapphire/90 text-ctp-base shadow-lg shadow-ctp-blue/20 transform active:scale-[0.98]"
+              }
+            `}
+          >
+            <PlayCircle className="w-5 h-5" />
+            Generate Contact Sheet
+          </button>
+        )}
+
+        {/* Download All Button - Only if we have processed files AND not loading */}
+        {!loading && files && files.some((f) => f.status === "done" && f.resultUrl) && (
+          <button
+            onClick={onDownloadAll}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all duration-200 bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text border border-ctp-blue/20 hover:border-ctp-blue/50"
+          >
+            <Upload className="w-4 h-4 rotate-180" /> {/* Reuse Upload icon rotated for download look */}
+            Download All (ZIP)
+          </button>
+        )}
       </div>
     </div>
   );

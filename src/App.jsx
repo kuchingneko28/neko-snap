@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { useState } from "react";
 import ControlsPanel from "./components/ControlsPanel";
 import DarkModeToggle from "./components/DarkModeToggle";
@@ -10,12 +11,12 @@ export default function App() {
   const [selectedFileId, setSelectedFileId] = useState(null);
   const [cols, setCols] = useState(4);
   const [rows, setRows] = useState(4);
-  const [canvasWidth, setCanvasWidth] = useState(1920);
+  const [canvasWidth, setCanvasWidth] = useState(1280);
   const [background, setBackground] = useState("dark");
 
   const [darkMode, setDarkMode] = useDarkMode();
 
-  const { processQueue, loading, progress } = useVideoProcessor();
+  const { processQueue, cancelProcessing, loading, progress } = useVideoProcessor();
 
   // Sync processed results back to our local files state if needed,
   // or just rely on the hook's queue state for everything?
@@ -63,6 +64,32 @@ export default function App() {
     });
   };
 
+  const handleDownloadAll = async () => {
+    const zip = new JSZip();
+    const processedFiles = files.filter((f) => f.status === "done" && f.resultUrl);
+
+    if (processedFiles.length === 0) return;
+
+    // Add files to zip
+    for (const item of processedFiles) {
+      const response = await fetch(item.resultUrl);
+      const blob = await response.blob();
+      const fileName = `${item.file.name.replace(/\.[^/.]+$/, "")}_contact_sheet.png`;
+      zip.file(fileName, blob);
+    }
+
+    // Generate and save
+    const content = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(content);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "neko_snap_batch.zip";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-ctp-base text-ctp-text font-sans transition-colors duration-300">
       <div className="flex flex-col lg:flex-row min-h-screen">
@@ -96,6 +123,8 @@ export default function App() {
               background={background}
               setBackground={setBackground}
               onGenerate={handleProcess}
+              onCancel={cancelProcessing}
+              onDownloadAll={handleDownloadAll}
               loading={loading}
             />
 

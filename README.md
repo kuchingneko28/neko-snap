@@ -5,6 +5,8 @@
 ## ✨ Features
 
 - 🖼️ **Batch Processing**: Upload multiple videos and manage a processing queue.
+- 📦 **Bulk Export**: Download all processed contact sheets as a single ZIP file.
+- 🛑 **Control**: Cancel processing at any time.
 - 🎨 **Modern Theme**: Beautiful **Catppuccin** (Latte/Mocha) UI with dark mode support.
 - 📐 **Resolution Presets**: Quick-select buttons for SD, HD, and 4K output.
 - 🎥 **Broad Support**: `.mp4`, `.mkv`, `.webm`, and more.
