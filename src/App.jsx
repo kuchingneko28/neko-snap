@@ -1,172 +1,213 @@
 import { useState } from "react";
-import { useRef } from "react";
 import ControlsPanel from "./components/ControlsPanel";
-import ThumbnailPreview from "./components/ThumbnailPreview";
 import DarkModeToggle from "./components/DarkModeToggle";
-import captureFrame from "./utils/captureFrame";
-import renderCanvas from "./utils/renderCanvas";
-import useDarkMode from "./utils/userDarkMode";
+import ThumbnailPreview from "./components/ThumbnailPreview";
+import useDarkMode from "./hooks/userDarkMode";
+import { useVideoProcessor } from "./hooks/useVideoProcessor";
 
 export default function App() {
-  const [compositeUrl, setCompositeUrl] = useState(null);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [selectedFileId, setSelectedFileId] = useState(null);
   const [cols, setCols] = useState(4);
   const [rows, setRows] = useState(4);
-  const [canvasWidth, setCanvasWidth] = useState(1500);
+  const [canvasWidth, setCanvasWidth] = useState(1920);
   const [background, setBackground] = useState("dark");
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState(null);
+
   const [darkMode, setDarkMode] = useDarkMode();
-  const videoRef = useRef(null);
+
+  const { processQueue, loading, progress } = useVideoProcessor();
+
+  // Sync processed results back to our local files state if needed,
+  // or just rely on the hook's queue state for everything?
+  // Let's use the hook as the source of truth for the processing queue
+  // and sync user added files to it.
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    setCompositeUrl(null);
+    const selectedFiles = Array.from(e.target.files);
+    const newItems = selectedFiles.map((f) => ({
+      id: crypto.randomUUID(),
+      file: f,
+      status: "pending", // pending, processing, done, error
+      resultUrl: null,
+      error: null,
+    }));
+    // User Request: Select = Replace logic
+    setFiles(newItems);
+    setSelectedFileId(newItems.length > 0 ? newItems[0].id : null);
   };
 
-  const handleProcess = async () => {
-    if (!file.type || !file.type.includes("video")) {
-      setError("Unsupported file type. Please select a video.");
-      return;
-    }
-    if (!file.type.startsWith("video/")) {
-      setError("The selected file is not a valid video.");
-      return;
-    }
+  const handleClearQueue = () => {
+    setFiles([]);
+    setSelectedFileId(null);
+  };
 
-    setLoading(true);
-    setProgress(0);
-    setCompositeUrl(null);
-    setError(null);
+  // Derived state to keep UI working for now
+  // If selectedFileId is set, find that file. Otherwise default to the first one (or last, but typically user wants to see the one they clicked).
+  const activeFileItem = files.length > 0 ? files.find((f) => f.id === selectedFileId) || files[0] : null;
 
-    try {
-      const url = URL.createObjectURL(file);
-      const video = videoRef.current || document.createElement("video");
-      videoRef.current = video;
-      video.preload = "metadata";
-      video.src = url;
-      video.muted = true;
-      video.playsInline = true;
-      video.crossOrigin = "anonymous";
+  const activeFile = activeFileItem ? activeFileItem.file : null;
+  const activeResult = activeFileItem ? activeFileItem.resultUrl : null;
+  const error = activeFileItem ? activeFileItem.error : null;
 
-      video.onloadedmetadata = () => {
-        const duration = video.duration;
-        const width = video.videoWidth;
-        const height = video.videoHeight;
-        const total = cols * rows;
-        const margin = 0.05 * duration;
-        const interval = (duration - 2 * margin) / total;
-        const thumbs = [];
+  const handleProcess = () => {
+    // Reset all files to pending so they can be re-processed with new settings
+    const pendingFiles = files.map((f) => ({ ...f, status: "pending", error: null }));
+    setFiles(pendingFiles);
 
-        const processInChunks = async (index = 0) => {
-          const chunkSize = Math.max(1, Math.floor(total / 20));
-          for (let i = 0; i < chunkSize && index < total; i++, index++) {
-            const fps = video.videoHeight > 0 ? video.videoWidth / video.duration : 30;
-            const time = margin + index * interval;
-
-            const result = await captureFrame(video, time, fps);
-            thumbs.push({ time: result.time, image: result.img });
-
-            setProgress(Math.round(((index + 1) / total) * 100));
-          }
-
-          if (index < total) {
-            setTimeout(() => processInChunks(index), 100);
-          } else {
-            renderCanvas({
-              thumbs,
-              duration,
-              originalWidth: width,
-              originalHeight: height,
-              cols,
-              rows,
-              canvasWidth,
-              background,
-              file,
-              setCompositeUrl,
-              setLoading,
-            });
-
-            videoRef.current.src = "";
-          }
-        };
-
-        processInChunks();
-      };
-      video.onerror = () => {
-        throw new Error("Failed to load video metadata.");
-      };
-    } catch (err) {
-      console.error("Video processing failed:", err);
-      setError("An error occurred while processing the video. Please try a different file.");
-      setLoading(false);
-    }
+    // Pass the current settings to the processor
+    processQueue(pendingFiles, setFiles, {
+      cols,
+      rows,
+      canvasWidth,
+      background,
+    });
   };
 
   return (
-    <div className="relative p-6 max-w-4xl mx-auto font-jakarta bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
-      <h1 className="text-3xl font-semibold mb-2 text-center">
-        <span className="text-teal-600">Neko</span>Snap
-      </h1>
-      <p className="text-center text-gray-600 dark:text-gray-400 mb-6 text-sm">A simple, cat-powered tool to generate video thumbnail grids with ease.</p>
-      <div className="absolute top-10 right-10 z-10 max-sm:static max-sm:flex max-sm:justify-center max-sm:mb-6 max-sm:mt-2">
-        <DarkModeToggle darkMode={darkMode} onToggle={() => setDarkMode((d) => !d)} />
+    <div className="min-h-screen bg-ctp-base text-ctp-text font-sans transition-colors duration-300">
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* Sidebar / Controls */}
+        <aside className="w-full lg:w-96 bg-ctp-mantle border-b lg:border-b-0 lg:border-r border-ctp-surface0 flex flex-col z-20 shadow-lg">
+          <div className="p-6 border-b border-ctp-surface0 flex justify-between items-center sticky top-0 bg-ctp-mantle z-10">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-ctp-blue to-ctp-sapphire">Neko</span>
+                Snap
+              </h1>
+              <p className="text-xs text-ctp-subtext0 mt-1">Video Contact Sheet Generator</p>
+            </div>
+            <DarkModeToggle darkMode={darkMode} onToggle={() => setDarkMode((d) => !d)} />
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+            <ControlsPanel
+              files={files}
+              selectedFileId={selectedFileId}
+              onSelectFile={setSelectedFileId}
+              onClearQueue={handleClearQueue}
+              file={activeFile}
+              onFileChange={handleFileChange}
+              cols={cols}
+              setCols={setCols}
+              rows={rows}
+              setRows={setRows}
+              canvasWidth={canvasWidth}
+              setCanvasWidth={setCanvasWidth}
+              background={background}
+              setBackground={setBackground}
+              onGenerate={handleProcess}
+              loading={loading}
+            />
+
+            <footer className="mt-auto pt-6 text-center text-xs text-ctp-subtext0 pb-2">
+              <p>
+                Created with ❤️ by{" "}
+                <a
+                  className="hover:text-ctp-blue transition-colors"
+                  href="https://web.facebook.com/kuchingneko"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Tuan Kuchiing
+                </a>
+              </p>
+            </footer>
+          </div>
+        </aside>
+
+        {/* Main Content / Preview */}
+        <main className="flex-1 flex flex-col relative overflow-hidden bg-ctp-base">
+          <div className="flex-1 overflow-y-auto p-4 lg:p-10 flex flex-col items-center justify-center min-h-[500px]">
+            {/* Progress / Loading State */}
+            {loading && !error && (
+              <div className="w-full max-w-md mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <span className="text-sm font-bold text-ctp-blue tracking-wide">PROCESSING VIDEO...</span>
+                  <span className="text-sm font-bold text-ctp-overlay0">{progress}%</span>
+                </div>
+                <div className="h-4 w-full bg-ctp-surface0 rounded-full overflow-hidden shadow-inner ring-1 ring-ctp-crust/5">
+                  <div
+                    className="h-full bg-linear-to-r from-ctp-blue to-ctp-sapphire transition-all duration-300 ease-out shadow-lg shadow-ctp-blue/20"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="max-w-md w-full bg-ctp-red/10 border border-ctp-red/20 rounded-xl p-6 text-center text-ctp-red mb-8 shadow-sm">
+                <div className="flex justify-center mb-3">
+                  <svg className="w-10 h-10 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="font-semibold">{error}</p>
+              </div>
+            )}
+
+            {/* File Ready State (When file selected but not processed) */}
+            {activeFile && !loading && !activeResult && (
+              <div className="text-center animate-in fade-in zoom-in duration-300">
+                <div className="w-24 h-24 bg-ctp-blue/10 rounded-3xl mx-auto mb-6 flex items-center justify-center ring-1 ring-ctp-blue/20 shadow-xl shadow-ctp-blue/10">
+                  <svg className="w-10 h-10 text-ctp-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-ctp-text mb-2">
+                  {files.length > 1 ? `${files.length} Files Queued` : activeFile.name}
+                </h3>
+                <div className="flex items-center justify-center gap-3 text-sm text-ctp-subtext0">
+                  <span className="bg-ctp-surface0 px-3 py-1 rounded-full border border-ctp-surface1">
+                    {(activeFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </span>
+                  <span className="bg-ctp-surface0 px-3 py-1 rounded-full border border-ctp-surface1 uppercase">
+                    {activeFile.type.split("/")[1] || "VIDEO"}
+                  </span>
+                </div>
+                <p className="mt-8 text-sm text-ctp-overlay0 max-w-xs mx-auto">
+                  {files.length > 1
+                    ? "Batch ready. Click Generate to process all."
+                    : "Ready to generate. Adjust settings in the sidebar and click Generate."}
+                </p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!activeFile && !loading && !activeResult && (
+              <div className="text-center text-ctp-overlay0">
+                <div className="w-24 h-24 bg-ctp-surface0 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-10 h-10 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-lg font-medium">No video selected</p>
+                <p className="text-sm mt-1 max-w-xs mx-auto">
+                  Upload a video from the sidebar to generate a contact sheet.
+                </p>
+              </div>
+            )}
+
+            {/* Preview */}
+            <ThumbnailPreview compositeUrl={activeResult} file={activeFile || null} />
+          </div>
+        </main>
       </div>
-      <ControlsPanel
-        file={file}
-        onFileChange={handleFileChange}
-        cols={cols}
-        setCols={setCols}
-        rows={rows}
-        setRows={setRows}
-        canvasWidth={canvasWidth}
-        setCanvasWidth={setCanvasWidth}
-        background={background}
-        setBackground={setBackground}
-        onGenerate={handleProcess}
-        loading={loading}
-      />
-      {file && (
-        <>
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 mb-8 shadow-md space-y-2">
-            <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-2">Media Info</h2>
-            <p className="break-words font-medium">{file.name}</p>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600 dark:text-gray-300">File Size:</span>
-              <span className="break-words">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium text-gray-600 dark:text-gray-300">Type:</span>
-              <span className="break-words">{file.type || "Unknown"}</span>
-            </div>
-          </div>
-        </>
-      )}
-      {loading && !error && (
-        <div className="mb-6 bg-teal-50 dark:bg-teal-800 p-4 rounded-lg border border-teal-200 dark:border-teal-600">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-teal-800 dark:text-teal-100">Processing video...</span>
-            <span className="text-sm text-teal-600 dark:text-teal-200">{progress}%</span>
-          </div>
-          <div className="w-full bg-teal-200 dark:bg-teal-900 rounded-full h-2">
-            <div className="bg-teal-600 dark:bg-teal-400 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      )}
-      {error && !file && (
-        <div className="mb-6 bg-red-50 dark:bg-red-900 p-4 rounded-lg border border-red-200 dark:border-red-700 text-sm text-red-800 dark:text-red-100">
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-      <ThumbnailPreview compositeUrl={compositeUrl} file={file} />
-      <footer className="mt-12 text-center text-gray-400 dark:text-gray-500 text-sm">
-        Created with ❤️ by{" "}
-        <a className="hover:underline text-teal-600 dark:text-teal-400" href="https://web.facebook.com/kuchingneko" target="_blank" rel="noopener noreferrer">
-          Tuan Kuchiing
-        </a>
-      </footer>
     </div>
   );
 }

@@ -4,11 +4,13 @@
 
 ## ✨ Features
 
-- 🖼️ Generate thumbnail grids (custom rows & columns)
-- 🎥 Supports popular video formats: `.mp4`, `.mkv`, `.webm`, and more
-- 🎟️ Adjustable thumbnail width for high-res grids
-- ⚡ Fully client-side (privacy friendly, no uploads)
-- 📸 Export thumbnail sheet as high-quality PNG
+- 🖼️ **Batch Processing**: Upload multiple videos and manage a processing queue.
+- 🎨 **Modern Theme**: Beautiful **Catppuccin** (Latte/Mocha) UI with dark mode support.
+- 📐 **Resolution Presets**: Quick-select buttons for SD, HD, and 4K output.
+- 🎥 **Broad Support**: `.mp4`, `.mkv`, `.webm`, and more.
+- ⚡ **High Performance**: Smart chunking for large files (tested with 1GB+ videos).
+- 🔒 **Client-Side**: 100% private, no server uploads.
+- 📸 **High Quality**: Export crystal clear PNG contact sheets.
 
 ## 🚀 Getting Started
 
